@@ -13,13 +13,13 @@ for ii = 1:nreplicate
     while true
         switch model
             case 'er'
-                [Ap1,XCoords, YCoords] = construct_graph(N1,'er',0.3);
+                Ap1 = generate_graph(N1,'er',0.3);
             case 'pa'
-                [Ap1,XCoords, YCoords] = construct_graph(N1,'pa',2);
+                Ap1 = generate_graph(N1,'pa',2);
             case 'ws'
-                [Ap1,XCoords, YCoords] = construct_graph(N1,'ws',3,0.1);
+                Ap1 = generate_graph(N1,'ws',3,0.1);
             case 'grid'
-                [Ap1,XCoords, YCoords] = construct_graph(N1,'er',4,5);
+                Ap1 = generate_graph(N1,'er',4,5);
         end
         if all(conncomp(graph(Ap1))==1)
             break;
@@ -29,13 +29,13 @@ for ii = 1:nreplicate
     while true
         switch model
             case 'er'
-                [Ap2,XCoords, YCoords] = construct_graph(N2,'er',0.3);
+                Ap2 = generate_graph(N2,'er',0.3);
             case 'pa'
-                [Ap2,XCoords, YCoords] = construct_graph(N2,'pa',2);
+                Ap2 = generate_graph(N2,'pa',2);
             case 'ws'
-                [Ap2,XCoords, YCoords] = construct_graph(N2,'ws',3,0.1);
+                Ap2 = generate_graph(N2,'ws',3,0.1);
             case 'grid'
-                [Ap2,XCoords, YCoords] = construct_graph(N2,'grid',5,5);
+                Ap2 = generate_graph(N2,'grid',5,5);
         end
         if all(conncomp(graph(Ap2))==1)
             break;
