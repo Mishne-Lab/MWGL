@@ -1,6 +1,6 @@
 clear; close all;
 %% set up parameters
-addpath("../utils/sgwt_toolbox/")
+addpath(genpath("../utils/sgwt_toolbox/"));
 N1 = 20;
 N2 = 25;
 upper = 2; % range of edge weights
