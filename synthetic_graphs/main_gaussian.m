@@ -1,5 +1,6 @@
 clear;close all
 %% set up parameters
+addpath("../baselines");
 N1 = 20;
 N2 = 25;
 N = N1*N2;
@@ -17,7 +18,7 @@ filename = join([model,"_N1=",num2str(N1),"_N2=",num2str(N2),"_weight=[",num2str
 load(filename)
 
 %% set up the baselines
-baselines.pst = 1;
+baselines.pst = 0;
 baselines.rpgl = 1;
 baselines.biglasso = 1;
 baselines.teralasso = 1;
