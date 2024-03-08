@@ -60,8 +60,8 @@ if baselines.teralasso == 1
     len_lambda_teralasso = length(lambda_teralasso);
     tol = 1e-7;
     maxiter = 10000;
-    for i = 1:12
-        for j = 1:12
+    for i = 1:len_lambda_teralasso
+        for j = 1:len_lambda_teralasso
             [PsiH,~ ] = teralasso({S,T},[N1,N2],'L1',1,tol,[lambda_teralasso(i),lambda_teralasso(j)],maxiter);
             L1 = PsiH{1};
             L2 = PsiH{2};
@@ -79,7 +79,7 @@ if baselines.mwgl == 1
     alpha_mwgl = [0.1,0.05,0.02,0.01,0.005,0];
     len_alpha_mwgl = length(alpha_mwgl);
     
-    for i = 1:12
+    for i = 1:len_alpha_mwgl
     
         param = struct();
         param.N1 = N1;
@@ -103,8 +103,9 @@ filename = "molene_results.mat";
 save(filename, "graphs1_mwgl", "graphs2_mwgl", "graphs1_teralasso", "graphs2_teralasso", "graphs1_rpgl", "graphs2_rpgl");
 
 %% Visualize learned graphs
-A2 = squareform(graphs2_mwgl(:,20));
+A2 = squareform(graphs2_mwgl(:,3));
 A2(A2<1e-4) = 0;
 G = graph(A2);
 plot(G,'XData',x,'YData',y,'ZData',z);
-% scatter3(x,y,z);
+xlabel('x');ylabel('y');zlabel('altitude')
+title('MWGL Learned Graph in 3D')
