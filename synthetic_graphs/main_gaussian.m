@@ -1,6 +1,7 @@
 clear;close all
 %% set up parameters
 addpath("../baselines");
+addpath("../utils/glmnet-matlab")
 N1 = 20;
 N2 = 25;
 N = N1*N2;
