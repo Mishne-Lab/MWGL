@@ -1,5 +1,6 @@
 clear;close all
 %% set up parameters
+addpath("../")
 addpath("../baselines");
 addpath("../utils/glmnet-matlab")
 N1 = 20;
@@ -20,28 +21,49 @@ load(filename)
 
 %% set up the baselines
 baselines.pst = 0;
-baselines.rpgl = 1;
-baselines.biglasso = 1;
-baselines.teralasso = 1;
-baselines.eiglasso = 1;
+baselines.rpgl = 0;
+baselines.biglasso = 0;
+baselines.teralasso = 0;
+baselines.eiglasso = 0;
 baselines.mwgl = 1;
+
+beta_rpgl = 0.1.^(0:0.2:2);
+beta_rpgl = [beta_rpgl,0];
+len_beta_rpgl = length(beta_rpgl);
+
+lambda_biglasso = 0.1.^[2:0.2:4];
+lambda_biglasso = [lambda_biglasso,0];
+len_lambda_biglasso = length(lambda_biglasso);
+
+lambda_teralasso = 0.1.^[2:0.2:4];%0.1.^[1:0.2:3];;%0;%
+lambda_teralasso = [lambda_teralasso,0];
+len_lambda_teralasso = length(lambda_teralasso);
+
+lambda_eiglasso = 0.1.^[1:0.2:3];%0.1.^[1:0.2:3];;%0;%
+lambda_eiglasso = [lambda_eiglasso,0];
+len_lambda_eiglasso = length(lambda_eiglasso);
+
+alpha_mwgl = 0.1.^(1:0.2:3);
+alpha_mwgl = [alpha_mwgl,0];%
+len_alpha_mwgl = length(alpha_mwgl);
+    
 
 for k = 1:length(Ms)
 M = Ms(k);
 
 graphs1_pst = zeros(p1,nreplicate);
-graphs1_rpgl = zeros(p1,12,12,nreplicate);
-graphs1_bpgl = zeros(p1,17,nreplicate);
-graphs1_mwgl = zeros(p1,nreplicate);
-graphs1_teralasso = zeros(p1,12,12,nreplicate);
-graphs1_eiglasso = zeros(p1,12,12,nreplicate);
+graphs1_rpgl = zeros(p1,len_beta_rpgl,len_beta_rpgl,nreplicate);
+graphs1_biglasso = zeros(N1^2,len_lambda_biglasso,len_lambda_biglasso,nreplicate);
+graphs1_teralasso = zeros(N1^2,len_lambda_teralasso,len_lambda_teralasso,nreplicate);
+graphs1_eiglasso = zeros(N1^2,len_lambda_eiglasso,len_lambda_eiglasso,nreplicate);
+graphs1_mwgl = zeros(p1,len_alpha_mwgl,nreplicate);
 
 graphs2_pst = zeros(p2,nreplicate);
-graphs2_rpgl = zeros(p2,12,12,nreplicate);
-graphs2_bpgl = zeros(p2,17,nreplicate);
-graphs2_mwgl = zeros(p2,nreplicate);
-graphs2_teralasso = zeros(p2,12,12,nreplicate);
-graphs2_eiglasso = zeros(p2,12,12,nreplicate);
+graphs2_rpgl = zeros(p2,len_beta_rpgl,len_beta_rpgl,nreplicate);
+graphs2_biglasso = zeros(N2^2,len_lambda_biglasso,len_lambda_biglasso,nreplicate);
+graphs2_teralasso = zeros(N2^2,len_lambda_teralasso,len_lambda_teralasso,nreplicate);
+graphs2_eiglasso = zeros(N2^2,len_lambda_eiglasso,len_lambda_eiglasso,nreplicate);
+graphs2_mwgl = zeros(p2,len_alpha_mwgl,nreplicate);
 
 for ii = 1:nreplicate
 % parfor (ii = 1:nreplicate,10)
@@ -80,21 +102,14 @@ end
 if baselines.rpgl == 1
     tic;
     
-    beta1 = 0.1.^(0:0.2:2);
-    beta2 = 0.1.^(0:0.2:2);
-    beta1 = [beta1,0];
-    beta2 = [beta2,0];
-    len_beta1 = length(beta1);
-    len_beta2 = length(beta2);
-    
-    for i = 1:len_beta1
-        for j = 1:len_beta2
+    for i = 1:len_beta_rpgl
+        for j = 1:len_beta_rpgl
             param = struct();
             param.N1 = N1;
             param.N2 = N2;
             param.solver = 'idqp';
-            param.beta1 = beta1(i);
-            param.beta2 = beta2(j);
+            param.beta1 = beta_rpgl(i);
+            param.beta2 = beta_rpgl(j);
             param.rho = 0.001;
             param.tol = 1e-6;
             param.max_iter = 20000;
@@ -118,11 +133,9 @@ if baselines.biglasso == 1
     X_M_rs = normalize(X_M_rs,2,"norm");
     S = reshape(X_M_rs,N1,[])*reshape(X_M_rs,N1,[])'/N2/M;
 
-    lambda = 0.1.^[1:0.2:3];
-    len_lambda = length(lambda);
-    for i = 1:len_lambda
-        for j = 1:len_lambda
-            [W, W_dual, Psi, Theta] = biglasso(S,T,[lambda(i),lambda(j)]);
+    for i = 1:len_lambda_biglasso
+        for j = 1:len_lambda_biglasso
+            [W, W_dual, Psi, Theta] = biglasso(S,T,[lambda_biglasso(i),lambda_biglasso(j)]);
             L2 = Psi;
             L1 = Theta;
             graphs1_biglasso(:,i,j,ii) = -L1(tril(true(N1),-1));
@@ -135,21 +148,17 @@ end
 %% main teralasso loop
 if baselines.teralasso == 1
     tic;
-    
-    assert(pd_type=="cartesian");
 
     X_M_rs = reshape(X_M,N2,N1,[]);
     T = reshape(X_M_rs,N2,[])*reshape(X_M_rs,N2,[])'/N1/M;
     X_M_rs = permute(X_M_rs,[2,1,3]);
     S = reshape(X_M_rs,N1,[])*reshape(X_M_rs,N1,[])'/N2/M;
-    lambda = 0.1.^[2:0.2:4];%0.1.^[1:0.2:3];;%0;%
-    lambda = [lambda,0];
-    len_lambda = length(lambda);
+    
     tol = 1e-4;
     maxiter = 100;
-    for i = 1:len_lambda
-        for j = 1:len_lambda
-            [PsiH,~ ] = teralasso({S,T},[N1,N2],'L1',1,tol,[lambda(i),lambda(j)],maxiter);
+    for i = 1:len_lambda_teralasso
+        for j = 1:len_lambda_teralasso
+            [PsiH,~ ] = teralasso({S,T},[N1,N2],'L1',1,tol,[lambda_teralasso(i),lambda_teralasso(j)],maxiter);
             L1 = PsiH{1};
             L2 = PsiH{2};
             graphs1_teralasso(:,i,j,ii) = -L1(tril(true(N1),-1));
@@ -162,21 +171,17 @@ end
 %% main eiglasso loop
 if baselines.eiglasso == 1
     tic;
-    
-    assert(pd_type=="cartesian");
 
     X_M_rs = reshape(X_M,N2,N1,[]);
-    T = reshape(X_M_rs,N2,[])*reshape(X_M_rs,N2,[])'/N1;
+    T = reshape(X_M_rs,N2,[])*reshape(X_M_rs,N2,[])'/N1/M;
     X_M_rs = permute(X_M_rs,[2,1,3]);
-    S = reshape(X_M_rs,N1,[])*reshape(X_M_rs,N1,[])'/N2;
-    lambda = 0.1.^[1:0.2:3];%0.1.^[1:0.2:3];;%0;%
-    lambda = [lambda,0];
-    len_lambda = length(lambda);
+    S = reshape(X_M_rs,N1,[])*reshape(X_M_rs,N1,[])'/N2/M;
+    
     tol = 1e-4;
     maxiter = 100;
-    for i = 1:len_lambda
-        for j = 1:len_lambda
-            [Theta, Psi, ts, fs] = eiglasso_joint(S, T, lambda(i), lambda(j));
+    for i = 1:len_lambda_eiglasso
+        for j = 1:len_lambda_eiglasso
+            [Theta, Psi, ts, fs] = eiglasso_joint(S, T, lambda_eiglasso(i), lambda_eiglasso(j));
             L1 = Theta+Theta'-diag(diag(Theta));
             L2 = Psi+Psi'-diag(diag(Psi));
             graphs1_eiglasso(:,i,j,ii) = -L1(tril(true(N1),-1));
@@ -190,16 +195,13 @@ end
 if baselines.mwgl == 1
     tic;
     
-    alpha = 0;%0.1.^(1:0.2:3);
-    len_alpha = length(alpha);
-    
 %     parfor (i = 1:len_alpha, 10)
-    for i = 1:len_alpha
+    for i = 1:len_alpha_mwgl
     
         param = struct();
         param.N1 = N1;
         param.N2 = N2;
-        param.alpha = alpha(i);
+        param.alpha = [alpha_mwgl(i)*N2,alpha_mwgl(i)*N1];
         param.inv_compute = 'eig';
         param.max_iter = 5000;
         param.step_size = 1e-3;
