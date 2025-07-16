@@ -2,7 +2,7 @@ clear;close all
 %% set up parameters
 addpath("../")
 addpath("../baselines");
-addpath("../utils/glmnet-matlab")
+addpath("../utils")
 N1 = 20;
 N2 = 25;
 N = N1*N2;
@@ -223,10 +223,6 @@ end
 if baselines.rpgl == 1
     res1_rpgl_graphs1(:,:,:,:,k) = graphs1_rpgl;
     res2_rpgl_graphs2(:,:,:,:,k) = graphs2_rpgl;
-end
-if baselines.bpgl == 1
-    res1_bpgl_graphs1(:,:,:,k) = graphs1_bpgl;
-    res2_bpgl_graphs2(:,:,:,k) = graphs2_bpgl;
 end
 if baselines.biglasso == 1
     res1_biglasso_graphs1(:,:,:,:,k) = graphs1_biglasso;

@@ -1,4 +1,5 @@
 %%% run evaluation on the results from main
+addpath("../utils/metrics/")
 
 %% set up the baselines
 baselines.pst = 0;
